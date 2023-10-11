@@ -27,7 +27,7 @@ RUN curl -fsSL https://get.docker.com | sh \
     && chmod +x /usr/local/bin/docker-compose
 
 # add AVD user
-RUN useradd -md /home/avd -s /bin/zsh -u $_RUNNER_ID avd \
+RUN useradd -md /home/avd -s /bin/zsh -u ${_RUNNER_ID} avd \
     && echo 'avd ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     # add docker and sudo to avd group
     && usermod -aG docker avd \
