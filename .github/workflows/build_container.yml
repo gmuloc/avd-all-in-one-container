@@ -75,20 +75,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/arm64/v8,linux/amd64
-      # delete old images
-      - name: Delete old containers
-        uses: actions/delete-package-versions@v4
-        if: github.repository_owner == 'gmuloc'
-        with:
-          package-name: avd-all-in-one-container/avd-all-in-one
-          package-type: container
-          min-versions-to-keep: 60
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Github flavor
       # generate docker tags and labels
       - name: Generate Docker tags and labels
-        id: meta
+        id: meta_github
         uses: docker/metadata-action@v4
         with:
           images: ghcr.io/gmuloc/avd-all-in-one-container/avd-all-in-one
@@ -106,9 +97,10 @@ jobs:
             _CVP_VERSION=${{ env._CVP_VERSION }}
             _RELEASE_DATE=${{ env._RELEASE_DATE }}
             _RUNNER_ID=1001
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta_github.outputs.tags }}
+          labels: ${{ steps.meta_github.outputs.labels }}
           platforms: linux/arm64/v8,linux/amd64
+
       # delete old images
       - name: Delete old containers
         uses: actions/delete-package-versions@v4
