@@ -96,7 +96,7 @@ jobs:
             _AVD_VERSION=${{ env._AVD_VERSION }}
             _CVP_VERSION=${{ env._CVP_VERSION }}
             _RELEASE_DATE=${{ env._RELEASE_DATE }}
-            _RUNNER_ID=1001
+            _RUNNER_UID=1001
           tags: ${{ steps.meta_github.outputs.tags }}
           labels: ${{ steps.meta_github.outputs.labels }}
           platforms: linux/arm64/v8,linux/amd64
