@@ -2,9 +2,9 @@
 name: build avd-all-in-one container
 
 env:
-  _AVD_VERSION: "4.3.0"
+  _AVD_VERSION: "4.4.0-dev2"
   _CVP_VERSION: "3.8.0"
-  _RELEASE_DATE: "2023-08-30"
+  _RELEASE_DATE: "2023-10-11"
   # to avoid unknown/unknown image build
   # check following thread for the details:
   #   https://github.com/orgs/community/discussions/45969
@@ -14,6 +14,7 @@ on:
   push:
     branches:
       - master
+      - github-action
 
 jobs:
   build_container_image:
@@ -21,7 +22,7 @@ jobs:
     steps:
       # checkout the repo
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       # setup qemu
       - name: setup QEMU
         uses: docker/setup-qemu-action@v2
@@ -42,42 +43,76 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ghcr.io/arista-netdevops-community/avd-all-in-one-container/avd-all-in-one
+          images: ghcr.io/gmuloc/avd-all-in-one-container/avd-all-in-one
           tags: |
             type=raw,value=latest
             type=raw,value=avd${{ env._AVD_VERSION }}_cvp${{ env._CVP_VERSION }}
       # only build the image in forked branches
       - name: Build without pushing
         uses: docker/build-push-action@v4
-        if: github.repository_owner != 'arista-netdevops-community'
+        if: github.repository_owner != 'gmuloc'
         with:
           push: false
           build-args: |
             _AVD_VERSION=${{ env._AVD_VERSION }}
             _CVP_VERSION=${{ env._CVP_VERSION }}
             _RELEASE_DATE=${{ env._RELEASE_DATE }}
-          # images: ghcr.io/arista-netdevops-community/avd-all-in-one-container/avd-all-in-one
+          # images: ghcr.io/gmuloc/avd-all-in-one-container/avd-all-in-one
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/arm64/v8,linux/amd64
       # build and push the image
       - name: Build and push
         uses: docker/build-push-action@v4
-        if: github.repository_owner == 'arista-netdevops-community'
+        if: github.repository_owner == 'gmuloc'
         with:
           push: true
           build-args: |
             _AVD_VERSION=${{ env._AVD_VERSION }}
             _CVP_VERSION=${{ env._CVP_VERSION }}
             _RELEASE_DATE=${{ env._RELEASE_DATE }}
-          # images: ghcr.io/arista-netdevops-community/avd-all-in-one-container/avd-all-in-one
+          # images: ghcr.io/gmuloc/avd-all-in-one-container/avd-all-in-one
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/arm64/v8,linux/amd64
       # delete old images
       - name: Delete old containers
         uses: actions/delete-package-versions@v4
-        if: github.repository_owner == 'arista-netdevops-community'
+        if: github.repository_owner == 'gmuloc'
+        with:
+          package-name: avd-all-in-one-container/avd-all-in-one
+          package-type: container
+          min-versions-to-keep: 60
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Github flavor
+      # generate docker tags and labels
+      - name: Generate Docker tags and labels
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/gmuloc/avd-all-in-one-container/avd-all-in-one
+          tags: |
+            type=raw,value=latest
+            type=raw,value=avd${{ env._AVD_VERSION }}_cvp${{ env._CVP_VERSION }}_github
+      # build and push the image
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        if: github.repository_owner == 'gmuloc'
+        with:
+          push: true
+          build-args: |
+            _AVD_VERSION=${{ env._AVD_VERSION }}
+            _CVP_VERSION=${{ env._CVP_VERSION }}
+            _RELEASE_DATE=${{ env._RELEASE_DATE }}
+            _RUNNER_ID=1001
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/arm64/v8,linux/amd64
+      # delete old images
+      - name: Delete old containers
+        uses: actions/delete-package-versions@v4
+        if: github.repository_owner == 'gmuloc'
         with:
           package-name: avd-all-in-one-container/avd-all-in-one
           package-type: container

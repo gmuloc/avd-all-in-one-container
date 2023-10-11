@@ -18,13 +18,16 @@ RUN apt-get update \
     && rm -Rf /usr/share/doc && rm -Rf /usr/share/man \
     && apt-get clean
 
+# Use 1001 for compatibility with GitHub-hosted runners
+ARG _RUNNER_UID=1000
+
 # install docker in docker and docker-compose
 RUN curl -fsSL https://get.docker.com | sh \
     && curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
 # add AVD user
-RUN useradd -md /home/avd -s /bin/zsh -u 1000 avd \
+RUN useradd -md /home/avd -s /bin/zsh -u $_RUNNER_ID avd \
     && echo 'avd ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     # add docker and sudo to avd group
     && usermod -aG docker avd \
@@ -81,7 +84,7 @@ LABEL org.opencontainers.image.description="Ansible AVD all-in-one container, AV
 # ansible.avd pip requirements are superior, ansible.cvp requirements will be ignored
 RUN wget --quiet https://raw.githubusercontent.com/aristanetworks/ansible-avd/v${_AVD_VERSION}/ansible_collections/arista/avd/requirements.txt \
     && wget --quiet https://raw.githubusercontent.com/aristanetworks/ansible-avd/v${_AVD_VERSION}/ansible_collections/arista/avd/requirements-dev.txt \
-    && pip3 install "ansible-core>=2.13.1,<2.14.0" \
+    && pip3 install "ansible-core>=2.13.1,<2.16.0" \
     && pip3 install --user --no-cache-dir -r requirements.txt \
     && pip3 install --user --no-cache-dir -r requirements-dev.txt \
     # install ansible.cvp first to control version explicitely without installing dependencies
